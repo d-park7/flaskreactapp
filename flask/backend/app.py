@@ -38,7 +38,15 @@ resource_fields = {
     'reminder': fields.Boolean
 }
 
-class Test(Resource):
+class Reminders(Resource):
+    @marshal_with(resource_fields)
+    def get(self):
+        result = TaskModel.query.all()
+        if not result:
+            abort(404, message="No tasks in db")
+        return result
+
+class Reminder(Resource):
     @marshal_with(resource_fields)
     def get(self, task_id):
         result = TaskModel.query.filter_by(id=task_id).first()
@@ -47,16 +55,12 @@ class Test(Resource):
         return result
 
     @marshal_with(resource_fields)
-    def put(self, task_id):
-        # id
-        # text
-        # date
-        # reminder
-        args = task_put_args.parse_args()
+    def post(self, task_id):
+        args = task_put_args.args()
         result = TaskModel.query.filter_by(id=task_id).first()
         if result:
-            abort(409, message="Task id taken")
-        task = TaskModel(id=task_id, text=args['text'], date=args['date'], reminder=args['reminder'])
+            abort(404, message="Task id already exists")
+        task = TaskModel(id=task_id, text=args['text'], date=args['date'], reminder=['reminder'])
         db.session.add(task)
         db.session.commit()
         return task, 201
@@ -84,7 +88,8 @@ class Test(Resource):
         db.session.commit()
         return "", 204
 
-api.add_resource(Test, "/<int:task_id>")
+api.add_resource(Reminders, "/tasks")
+api.add_resource(Reminder, "/tasks/<int:task_id>")
 
 if __name__ == "__app__":
     app.run(debug=True)

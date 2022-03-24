@@ -3,43 +3,38 @@ import axios from 'axios'
 import Header from "./components/Header";
 import Tasks from "./components/Tasks";
 import AddTasks from './components/AddTasks';
-import Help from "./components/Help";
 
 
 const api = axios.create({
-    baseURL: `http://127.0.0.1:5000/`
+    baseURL: `http://127.0.0.1:5000`
 })
 
 const App = () => {
-    const [showAddTask, setShowAddTask] = useState(false)
+    const [showAddTask, setShowAddTask] = useState(true)
     const [tasks, setTasks] = useState([])
-    const [test, setTest] = useState("")
-
-    const getTasks = () => {
-        api.get('/1').then(res => {
-            console.log(res.data)
-            setTest(res.data)
-        }).catch(error => {
-            console.log(error)
-        })
-    }
-
 
     // Fetch tasks from backend
-    // useEffect(() => {
-    //     axios.get('http://127.0.0.1:5000/2').then(response => {
-    //         console.log("SUCCESS", response)
-    //         setTasks(response)
-    //     }).catch(error => {
-    //         console.log(error)
-    //     })
-    // }, [])
+    useEffect(() => {
+        const fetchTasks = async () => {
+            try {
+                const response = await api.get('/tasks')
+                //console.log(response.data)
+                setTasks(response.data)
+            } catch (err) {
+                console.log(err.response.data)
+                console.log(err.response.status)
+                console.log(err.response.headers)
+            }
+        }
+        fetchTasks()
+    }, [])
 
     // Add task
-    const addTask = (task) => {
-        const id = Math.floor(Math.random() * 1000) + 1
-        const newTask = { id, ...task }
-        setTasks([...tasks, newTask])
+    const addTask = async (task) => {
+        const id = tasks[tasks.length - 1].id + 1
+        task.id = id
+        const response = await api.post(`/tasks/${task.id}`)
+        setTasks([...tasks, response.data])
     }
 
     // Delete task
@@ -59,7 +54,6 @@ const App = () => {
     return (
         <div className="App">
             <Header onAdd={() => setShowAddTask(!showAddTask)} showAdd={showAddTask} />
-            <Help displayData={getTasks}/>
             {showAddTask && <AddTasks onAdd={addTask} />}
             {tasks.length > 0 ? (
                 <Tasks tasks={tasks} onDelete=

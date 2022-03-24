@@ -5,6 +5,7 @@ const Tasks = ({ tasks, onDelete, onToggle }) => {
         <>
             {tasks.map((task) => (
                 <Task 
+                    {...console.log(task.id)}
                     key={task.id} 
                     task={task} 
                     onDelete={onDelete}
